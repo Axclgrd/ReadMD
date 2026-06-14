@@ -1,0 +1,39 @@
+/**
+ * Theme tokens.
+ *
+ * Every user-customizable aspect of the rendering is a CSS variable here. The
+ * settings panel (phase 5) overrides these on :root at runtime and persists
+ * them to disk; the dark theme (phase 6) overrides them under
+ * [data-theme="dark"]. Keeping them in one place is what makes live preview and
+ * "reset to defaults" trivial.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Headings — H1 blue, subtitles a darker blue, matching the default brief. */
+  --heading-1-color: #1a56db;
+  --heading-sub-color: #1e3a8a;
+
+  /* Text & links */
+  --text-color: #1f2328;
+  --muted-color: #656d76;
+  --link-color: #0969da;
+
+  /* Surfaces */
+  --bg-color: #ffffff;
+  --surface-color: #f6f8fa;
+  --border-color: #d0d7de;
+  --code-bg: #f6f8fa;
+  --code-text: #1f2328;
+
+  /* Typography */
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro",
+    Menlo, Consolas, monospace;
+  --font-size-base: 16px;
+
+  /* Layout */
+  --reading-width: 760px;
+}
