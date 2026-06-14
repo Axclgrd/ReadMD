@@ -119,9 +119,9 @@ export async function renderMermaidIn(
         "Erreur de syntaxe Mermaid : " +
         (err instanceof Error ? err.message : String(err));
       el.replaceWith(box);
-      // Note: mermaid.render() may leave an orphan node with id="#d{id}" on
-      // document.body in some v11 builds on failure. Not cleaned up here —
-      // the tester should watch for DOM accretion across many failed renders.
+      // mermaid.render() can leave an orphan measurement node (id="d<id>") on
+      // document.body when it throws; remove it so failures don't accrete DOM.
+      document.getElementById("d" + id)?.remove();
     }
   }
 }
