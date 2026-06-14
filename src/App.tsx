@@ -5,6 +5,9 @@
  * "open-file" event, drag-and-drop, and the "Ouvrir" file dialog) to the
  * Markdown rendering pipeline.  Later phases will add sidebar, settings, real
  * Mermaid rendering, and dark-mode theming.
+ *
+ * Phase 5 adds the settings panel with live-preview color, font, size, and
+ * reading-width controls backed by on-disk persistence.
  */
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -15,7 +18,15 @@ import { open } from "@tauri-apps/plugin-dialog";
 import Viewer from "./components/Viewer";
 import Toolbar from "./components/Toolbar";
 import EmptyState from "./components/EmptyState";
+import SettingsPanel from "./components/SettingsPanel";
 import { firstMarkdownPath } from "./lib/files";
+import {
+  DEFAULT_SETTINGS,
+  applySettings,
+  loadSettings,
+  saveSettings,
+} from "./lib/settings";
+import type { Settings } from "./lib/settings";
 import type { MarkdownFile } from "./lib/types";
 
 // ---------------------------------------------------------------------------
@@ -26,6 +37,13 @@ function App() {
   const [doc, setDoc] = useState<MarkdownFile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+
+  // Phase 5 — settings state.
+  // Initialised from DEFAULT_SETTINGS synchronously; a mount effect syncs the
+  // React state with what was already applied to the DOM (via main.tsx) so the
+  // panel shows the correct persisted values.
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   /**
    * Load a file by path via the Rust backend.
@@ -125,12 +143,69 @@ function App() {
   }, [openPath]); // openPath is useCallback-stable (deps [])
 
   // ---------------------------------------------------------------------------
+  // Mount effect — sync React settings state with the persisted values.
+  //
+  // main.tsx already applied the persisted CSS variables before the first
+  // render so there is no visual flash.  This effect loads the same values
+  // into React state so the settings panel controls show the correct values.
+  //
+  // Kept in a separate effect to avoid entangling with the file-opening effect
+  // above.  The `cancelled` flag guards against StrictMode double-invocation.
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const persisted = await loadSettings();
+        if (!cancelled) {
+          setSettings(persisted);
+        }
+      } catch {
+        // On error, keep DEFAULT_SETTINGS already in state.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []); // run once on mount
+
+  // ---------------------------------------------------------------------------
+  // Settings handlers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Apply, persist, and update state for a new settings object.
+   * Triggers live preview immediately via CSS variable mutation on :root.
+   */
+  const updateSettings = useCallback((next: Settings) => {
+    setSettings(next);
+    applySettings(next);
+    void saveSettings(next);
+  }, []);
+
+  /**
+   * Reset all settings to factory defaults, persisting and previewing the
+   * result so the UI is consistent with the on-disk state.
+   */
+  const resetSettings = useCallback(() => {
+    setSettings(DEFAULT_SETTINGS);
+    applySettings(DEFAULT_SETTINGS);
+    void saveSettings(DEFAULT_SETTINGS);
+  }, []);
+
+  // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
 
   return (
     <div className="app">
-      <Toolbar fileName={doc?.name} onOpen={() => void handleOpen()} />
+      <Toolbar
+        fileName={doc?.name}
+        onOpen={() => void handleOpen()}
+        onToggleSettings={() => setSettingsOpen((prev) => !prev)}
+      />
       <main className="content">
         {error !== null && (
           <div className="error-banner" role="alert">
@@ -150,6 +225,13 @@ function App() {
           Déposez un fichier .md
         </div>
       )}
+      <SettingsPanel
+        open={settingsOpen}
+        settings={settings}
+        onChange={updateSettings}
+        onReset={resetSettings}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
   );
 }
