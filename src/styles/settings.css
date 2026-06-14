@@ -269,3 +269,47 @@
   background: var(--surface-color);
   border-color: var(--muted-color);
 }
+
+/* ---------------------------------------------------------------------------
+   Theme selector — segmented button group (phase 6)
+   --------------------------------------------------------------------------- */
+
+.settings-theme-selector {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.settings-theme-btn {
+  appearance: none;
+  border: none;
+  border-left: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 0.8125rem;
+  font-family: var(--font-body);
+  padding: 0.3rem 0.65rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.settings-theme-btn:first-child {
+  border-left: none;
+}
+
+.settings-theme-btn:hover {
+  background: var(--surface-color);
+}
+
+.settings-theme-btn--active {
+  background: var(--link-color);
+  color: #fff;
+}
+
+.settings-theme-btn--active:hover {
+  background: var(--link-color);
+}

@@ -4,6 +4,11 @@
  * Each setting maps 1:1 to a CSS variable declared in theme.css. The settings
  * panel (phase 5) writes these at runtime via applySettings(); main.tsx applies
  * them before the first React render to avoid a flash of default styles.
+ *
+ * Phase 6 adds:
+ *   - ThemeMode ("light" | "dark" | "system") with applyTheme/watchSystemTheme.
+ *   - applySettings now removes a CSS var when its value equals the default so
+ *     the [data-theme="dark"] palette can show through for untouched tokens.
  */
 import { load, type Store } from "@tauri-apps/plugin-store";
 
@@ -22,10 +27,19 @@ export const FONT_MONO_SYSTEM =
   'ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace';
 
 // ---------------------------------------------------------------------------
+// Theme mode
+// ---------------------------------------------------------------------------
+
+/** User-selected colour scheme preference. */
+export type ThemeMode = "light" | "dark" | "system";
+
+// ---------------------------------------------------------------------------
 // Settings type
 // ---------------------------------------------------------------------------
 
 export interface Settings {
+  /** Light / dark / system colour scheme preference (phase 6). */
+  theme: ThemeMode;
   /** CSS: --heading-1-color */
   headingColor: string;
   /** CSS: --heading-sub-color */
@@ -49,6 +63,7 @@ export interface Settings {
 // ---------------------------------------------------------------------------
 
 export const DEFAULT_SETTINGS: Settings = {
+  theme: "system",
   headingColor: "#1a56db",
   subheadingColor: "#1e3a8a",
   textColor: "#1f2328",
@@ -61,9 +76,12 @@ export const DEFAULT_SETTINGS: Settings = {
 
 // ---------------------------------------------------------------------------
 // Mapping from Settings keys to CSS variable names.
+//
+// `theme` is intentionally absent — it drives the [data-theme] attribute via
+// applyTheme(), not an inline CSS custom property.
 // ---------------------------------------------------------------------------
 
-const CSS_VARS: Record<keyof Settings, string> = {
+const CSS_VARS: Partial<Record<keyof Settings, string>> = {
   headingColor: "--heading-1-color",
   subheadingColor: "--heading-sub-color",
   textColor: "--text-color",
@@ -79,17 +97,80 @@ const CSS_VARS: Record<keyof Settings, string> = {
 // ---------------------------------------------------------------------------
 
 /**
- * Write every setting as a CSS custom property on :root.
+ * Write appearance settings as CSS custom properties on :root.
  *
- * This is synchronous and side-effect-free with respect to React state so it
- * can be called both before the first render (in main.tsx) and inside event
- * handlers (in App.tsx) without any ordering constraints.
+ * When a value equals the DEFAULT_SETTINGS value the property is *removed* from
+ * the inline style so the [data-theme="dark"] palette can govern it.  When the
+ * user has customised a value it is written inline, which wins over both the
+ * :root and [data-theme] rule blocks.
+ *
+ * `theme` is NOT handled here — use applyTheme() instead.
+ *
+ * This function is synchronous and side-effect-free with respect to React state
+ * so it can be called both before the first render (in main.tsx) and inside
+ * event handlers (in App.tsx).
  */
 export function applySettings(s: Settings): void {
   const root = document.documentElement;
   (Object.keys(CSS_VARS) as Array<keyof Settings>).forEach((key) => {
-    root.style.setProperty(CSS_VARS[key], s[key]);
+    const varName = CSS_VARS[key];
+    if (varName === undefined) return; // `theme` has no CSS var
+    if (s[key] === DEFAULT_SETTINGS[key]) {
+      // Remove the inline override — let :root / [data-theme] govern.
+      root.style.removeProperty(varName);
+    } else {
+      root.style.setProperty(varName, s[key] as string);
+    }
   });
+}
+
+// ---------------------------------------------------------------------------
+// Theme — light / dark / system
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve the effective colour scheme from the user's ThemeMode preference and
+ * apply it as `data-theme` on <html>.
+ *
+ * "system" defers to the OS preference via prefers-color-scheme.  The resolved
+ * value is always "light" or "dark" (never "system") so CSS selectors are simple.
+ */
+export function applyTheme(mode: ThemeMode): void {
+  const resolved: "light" | "dark" =
+    mode === "system"
+      ? window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light"
+      : mode;
+  document.documentElement.setAttribute("data-theme", resolved);
+}
+
+/**
+ * Subscribe to OS-level colour-scheme changes.
+ *
+ * When the current mode is "system" and the OS preference changes, applyTheme
+ * is re-invoked so the UI updates without a page reload.
+ *
+ * Returns an unsubscribe function; call it in useEffect cleanup to avoid
+ * stacking listeners across React StrictMode double-mounts.
+ *
+ * @param getMode - A getter that returns the *current* ThemeMode at call time
+ *                  (a ref read, so no stale-closure problems).
+ */
+export function watchSystemTheme(getMode: () => ThemeMode): () => void {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+
+  const handler = (): void => {
+    if (getMode() === "system") {
+      applyTheme("system");
+    }
+  };
+
+  mq.addEventListener("change", handler);
+
+  return () => {
+    mq.removeEventListener("change", handler);
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -110,11 +191,17 @@ function getStore(): Promise<Store> {
   return storeP;
 }
 
+/** Validate that a raw store value is a valid ThemeMode. */
+function isThemeMode(v: unknown): v is ThemeMode {
+  return v === "light" || v === "dark" || v === "system";
+}
+
 /**
  * Load persisted settings from disk.
  *
  * Missing keys fall back to DEFAULT_SETTINGS values, so a fresh install or a
- * partially migrated store is always safe.
+ * partially migrated store is always safe.  `theme` is validated against the
+ * ThemeMode union; an unrecognised value falls back to "system".
  */
 export async function loadSettings(): Promise<Settings> {
   const store = await getStore();
@@ -123,7 +210,11 @@ export async function loadSettings(): Promise<Settings> {
   await Promise.all(
     keys.map(async (k) => {
       const v = await store.get<string>(k);
-      if (typeof v === "string") result[k] = v;
+      if (k === "theme") {
+        if (isThemeMode(v)) result.theme = v;
+      } else {
+        if (typeof v === "string") (result as Record<keyof Settings, string>)[k] = v;
+      }
     }),
   );
   return result;

@@ -1,15 +1,18 @@
 //! ReadMD — Tauri backend.
 //!
-//! Exposes a single, extension-checked file-reading command plus the plumbing
-//! that delivers the file ReadMD was launched/opened with to the frontend
-//! (CLI argument on Windows, `RunEvent::Opened` on macOS).
+//! Exposes an extension-checked file-reading command, a file watcher that emits
+//! a `file-changed` event for hot reload, and the plumbing that delivers the
+//! file ReadMD was launched/opened with to the frontend (CLI argument on
+//! Windows, `RunEvent::Opened` on macOS).
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
+use notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use tauri::Emitter;
 #[cfg(target_os = "macos")]
-use tauri::{Emitter, Manager};
+use tauri::Manager;
 
 /// Holds the file ReadMD was launched with until the frontend is ready to
 /// consume it. Afterwards, files opened while running are pushed via an event.
@@ -17,6 +20,10 @@ struct LaunchState {
     initial_file: Mutex<Option<String>>,
     frontend_ready: AtomicBool,
 }
+
+/// Keeps the active file-system watcher alive. Replacing it drops the previous
+/// one, so only the currently-open document is ever watched.
+struct WatcherState(Mutex<Option<RecommendedWatcher>>);
 
 /// A Markdown document handed to the frontend.
 #[derive(serde::Serialize)]
@@ -68,6 +75,51 @@ fn get_launch_file(state: tauri::State<'_, LaunchState>) -> Option<String> {
     state.initial_file.lock().unwrap().take()
 }
 
+/// Watches `path` for changes and emits a `file-changed` event (payload: the
+/// path) so the frontend can reload it. We watch the parent directory and
+/// filter by path so atomic saves (write-temp-then-rename, used by many editors)
+/// are still caught. Replacing the stored watcher stops the previous one.
+#[tauri::command]
+fn watch_file(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, WatcherState>,
+    path: String,
+) -> Result<(), String> {
+    let file = PathBuf::from(&path);
+    if !is_markdown(&file) {
+        return Err(format!("Not a Markdown file: {path}"));
+    }
+    let dir = file
+        .parent()
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| file.clone());
+
+    let app_handle = app.clone();
+    let target = file.clone();
+    let mut watcher = notify::recommended_watcher(
+        move |res: Result<notify::Event, notify::Error>| {
+            let Ok(event) = res else { return };
+            let touched = event.paths.iter().any(|p| p == &target);
+            if touched
+                && matches!(
+                    event.kind,
+                    EventKind::Modify(_) | EventKind::Create(_) | EventKind::Remove(_)
+                )
+            {
+                let _ = app_handle.emit("file-changed", target.to_string_lossy().to_string());
+            }
+        },
+    )
+    .map_err(|e| e.to_string())?;
+
+    watcher
+        .watch(&dir, RecursiveMode::NonRecursive)
+        .map_err(|e| e.to_string())?;
+
+    *state.0.lock().unwrap() = Some(watcher);
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // A Markdown path may arrive as a CLI argument (Windows double-click or
@@ -84,7 +136,12 @@ pub fn run() {
             initial_file: Mutex::new(initial_file),
             frontend_ready: AtomicBool::new(false),
         })
-        .invoke_handler(tauri::generate_handler![read_markdown, get_launch_file])
+        .manage(WatcherState(Mutex::new(None)))
+        .invoke_handler(tauri::generate_handler![
+            read_markdown,
+            get_launch_file,
+            watch_file
+        ])
         .build(tauri::generate_context!())
         .expect("error while building ReadMD")
         .run(|_app, _event| {

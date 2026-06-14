@@ -7,7 +7,7 @@ import "./styles/app-shell.css";
 import "./styles/markdown.css";
 import "./styles/settings.css";
 import "highlight.js/styles/github.css";
-import { applySettings, loadSettings } from "./lib/settings";
+import { applySettings, applyTheme, loadSettings } from "./lib/settings";
 
 /**
  * Bootstrap the application.
@@ -19,7 +19,11 @@ import { applySettings, loadSettings } from "./lib/settings";
  */
 async function bootstrap(): Promise<void> {
   try {
-    applySettings(await loadSettings());
+    const settings = await loadSettings();
+    applySettings(settings);
+    // Apply the colour scheme before the first render so there is no flash of
+    // the default light theme when the user has chosen dark or system-dark.
+    applyTheme(settings.theme);
   } catch {
     // Keep theme.css defaults — no action needed.
   }

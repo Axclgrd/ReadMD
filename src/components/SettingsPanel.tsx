@@ -9,7 +9,7 @@
  * All labels are in French, matching the existing app UI conventions.
  */
 import { FONT_BODY_SYSTEM, FONT_MONO_SYSTEM } from "../lib/settings";
-import type { Settings } from "../lib/settings";
+import type { Settings, ThemeMode } from "../lib/settings";
 
 // ---------------------------------------------------------------------------
 // Font option lists — value must match the constant used in DEFAULT_SETTINGS
@@ -96,6 +96,44 @@ export default function SettingsPanel({
       {/* Controls                                                            */}
       {/* ------------------------------------------------------------------ */}
       <div className="settings-panel__body">
+
+        {/* -------- Section: Thème -------- */}
+        <section className="settings-section">
+          <h3 className="settings-section__title">Thème</h3>
+          <div className="settings-row">
+            <label className="settings-row__label" htmlFor="sp-theme">
+              Apparence
+            </label>
+            {/*
+             * Segmented-button group: Clair / Sombre / Système.
+             * Each button gets the --active modifier when selected.
+             * Implemented with radio-like button group for accessibility.
+             */}
+            <div
+              className="settings-theme-selector"
+              role="group"
+              aria-label="Choisir le thème"
+            >
+              {(
+                [
+                  { value: "light", label: "Clair" },
+                  { value: "dark", label: "Sombre" },
+                  { value: "system", label: "Système" },
+                ] as Array<{ value: ThemeMode; label: string }>
+              ).map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  className={`settings-theme-btn${settings.theme === value ? " settings-theme-btn--active" : ""}`}
+                  aria-pressed={settings.theme === value}
+                  onClick={() => patch({ theme: value })}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
 
         {/* -------- Section: Couleurs -------- */}
         <section className="settings-section">
