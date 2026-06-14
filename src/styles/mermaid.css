@@ -1,0 +1,58 @@
+/**
+ * Mermaid diagram styles — Phase 4.
+ *
+ * Three states to handle:
+ *   1. `.mermaid-rendered` — successful render wrapper (flex-centers the SVG).
+ *   2. `.mermaid-error`    — parse/render failure (red border + tinted background).
+ *   3. `pre.mermaid`       — unprocessed placeholder (muted monospace; shown
+ *                            briefly during the async render, or permanently in
+ *                            environments where JS fails to load Mermaid).
+ *
+ * Colors rely on CSS custom properties so Phase 6 dark-mode theming works
+ * without touching this file (fallbacks provided for sandboxed contexts).
+ */
+
+/* -------------------------------------------------------------------------
+   Rendered diagram wrapper
+   ---------------------------------------------------------------------- */
+
+.mermaid-rendered {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.mermaid-rendered svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* -------------------------------------------------------------------------
+   Error box — shown when Mermaid throws a parse or render error
+   ---------------------------------------------------------------------- */
+
+.mermaid-error {
+  border: 1px solid #d1242f;
+  background: color-mix(in srgb, #d1242f 8%, transparent);
+  color: #d1242f;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.9em;
+  white-space: pre-wrap;
+}
+
+/* -------------------------------------------------------------------------
+   Unprocessed placeholder — minimal styling until the async render completes
+   ---------------------------------------------------------------------- */
+
+/* markdown.css already gives `pre.mermaid` the code-block chrome (background,
+   padding, border-radius). We only layer a muted color and monospace font on
+   top so the raw source text is readable while Mermaid loads. */
+pre.mermaid {
+  color: var(--muted-color, #6e7681);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.875em;
+  white-space: pre;
+}
