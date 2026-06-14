@@ -1,0 +1,126 @@
+/**
+ * App-shell styles: toolbar, error banner, drop overlay, and the inline
+ * "Ouvrir" button inside the empty state.
+ *
+ * All colors use theme.css variables — no hardcoded values that would break
+ * a future dark-mode override (phase 6).
+ */
+
+/* ---------------------------------------------------------------------------
+   Toolbar
+   --------------------------------------------------------------------------- */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  height: 44px;
+  padding: 0 1rem;
+  background: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0; /* prevent the toolbar from being squished by .content */
+  user-select: none;
+}
+
+.toolbar__brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0; /* allow the file name to truncate */
+}
+
+.toolbar__app-name {
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--heading-1-color);
+  white-space: nowrap;
+}
+
+.toolbar__file-name {
+  font-size: 0.875rem;
+  color: var(--muted-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbar__open-btn {
+  appearance: none;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.toolbar__open-btn:hover {
+  background: var(--surface-color);
+  border-color: var(--muted-color);
+}
+
+/* ---------------------------------------------------------------------------
+   Error banner
+   --------------------------------------------------------------------------- */
+
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: #fff5f5; /* deliberate: error-specific colour not in theme vars */
+  border-bottom: 1px solid #fca5a5;
+  color: #b91c1c;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Keep the colour locked even when a dark theme lands in phase 6 — errors
+   should always be red-on-light, or the phase-6 author can override this. */
+
+/* ---------------------------------------------------------------------------
+   Drag-and-drop overlay
+   --------------------------------------------------------------------------- */
+
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--heading-1-color) 8%, transparent);
+  border: 3px dashed var(--heading-1-color);
+  border-radius: 8px;
+  margin: 4px; /* keeps the dashed border inside the window frame */
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--heading-1-color);
+  /* pointer-events: none so the overlay never intercepts the native drop */
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ---------------------------------------------------------------------------
+   Inline "Ouvrir" button inside EmptyState
+   --------------------------------------------------------------------------- */
+
+.empty-state__inline-btn {
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--link-color);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.empty-state__inline-btn:hover {
+  text-decoration: none;
+}

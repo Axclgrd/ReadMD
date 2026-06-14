@@ -46,6 +46,15 @@
     ],
     "macOS": {
       "minimumSystemVersion": "10.15"
-    }
+    },
+    "fileAssociations": [
+      {
+        "ext": ["md", "markdown"],
+        "name": "Markdown Document",
+        "description": "Markdown document",
+        "role": "Viewer",
+        "mimeType": "text/markdown"
+      }
+    ]
   }
 }
