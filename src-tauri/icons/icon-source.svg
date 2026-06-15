@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b82f6"/>
+      <stop offset="1" stop-color="#1e3a8a"/>
+    </linearGradient>
+  </defs>
+  <!-- macOS-style rounded square (squircle-ish) in the app's blue -->
+  <rect x="112" y="112" width="800" height="800" rx="180" fill="url(#bg)"/>
+  <!-- Official Markdown mark "M▼" (CC0), scaled and centered, in white -->
+  <g transform="translate(512 512) scale(2.6) translate(-104 -64)" fill="#ffffff">
+    <path d="M30 98V30h20l20 25 20-25h20v68H90V59L70 84 50 59v39zm125 0l-30-33h20V30h20v35h20z"/>
+  </g>
+</svg>
