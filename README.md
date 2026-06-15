@@ -98,8 +98,6 @@ macOS, et nécessite signature Apple. Référence open source :
 
 ## Licence
 
-⚠️ **À finaliser.** Actuellement sous licence **MIT** (placeholder). L'intention
-est de passer à une licence **non-commerciale avec attribution obligatoire**
-(type [PolyForm Noncommercial](https://polyformproject.org/licenses/noncommercial/1.0.0/)
-ou CC BY-NC) : usage et modification libres **sauf usage commercial**, et
-mention obligatoire de ce projet. Voir [`LICENSE`](LICENSE).
+[MIT](LICENSE) — usage, modification et redistribution libres (y compris
+commercial), à condition de conserver la notice de copyright.
+© 2026 ReadMD contributors.
