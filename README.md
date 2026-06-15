@@ -1,103 +1,116 @@
+<div align="center">
+
+<img src="src-tauri/icons/icon.png" width="120" height="120" alt="Logo ReadMD" />
+
 # ReadMD
 
-**Lecteur Markdown ultra-léger pour macOS et Windows.** Double-cliquez sur un
-fichier `.md`, lisez-le avec un rendu propre et personnalisable. Lecture seule,
-aucune édition — pensé pour des collaborateurs non techniques.
+**Lecteur Markdown ultra-léger pour macOS & Windows.**
 
-> Construit avec [Tauri v2](https://tauri.app) (webview natif, pas Electron) →
-> binaire minuscule. Le `.dmg` macOS fait ~4 Mo.
+Double-cliquez sur un `.md`, lisez-le avec un rendu propre et personnalisable. Lecture seule, aucune édition.
 
-<!-- Capture d'écran (placeholder) : ajoutez docs/screenshot.png -->
-<!-- ![ReadMD](docs/screenshot.png) -->
+[![Plateformes](https://img.shields.io/badge/macOS%20%7C%20Windows-1a56db)](https://github.com/Axclgrd/ReadMD/releases)
+[![Licence MIT](https://img.shields.io/badge/licence-MIT-3fb950)](LICENSE)
+[![Built with Tauri v2](https://img.shields.io/badge/Tauri-v2-24C8DB?logo=tauri&logoColor=white)](https://tauri.app)
+[![Build](https://github.com/Axclgrd/ReadMD/actions/workflows/build.yml/badge.svg)](https://github.com/Axclgrd/ReadMD/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/Axclgrd/ReadMD?include_prereleases&label=release)](https://github.com/Axclgrd/ReadMD/releases)
 
-## Fonctionnalités
+</div>
 
-- **Rendu GFM complet** : titres, paragraphes, listes, **cases à cocher**,
-  citations, **tableaux**, liens, images (locales et distantes), séparateurs.
-- **Coloration syntaxique** du code (highlight.js, ~40 langages courants).
-- **Diagrammes Mermaid** (` ```mermaid `), chargés à la demande ; une erreur de
-  syntaxe affiche un encadré sans casser le reste du document.
-- **Personnalisation** : couleurs des titres / sous-titres / texte / liens,
-  police du corps et du code, taille de police, largeur de lecture — aperçu en
-  direct et **sauvegardé sur disque**.
-- **Thème clair / sombre**, suit le système ou forcé manuellement.
-- **Ouverture** : double-clic (association `.md`/`.markdown`), glisser-déposer,
-  bouton « Ouvrir », ou en ligne de commande (`readmd fichier.md`).
-- **Rechargement à chaud** : le rendu se met à jour si le fichier change sur disque.
-- **Liens externes** ouverts dans le navigateur par défaut, pas dans la fenêtre.
-- **Sécurité** : tout le HTML rendu est nettoyé par DOMPurify, CSP stricte,
-  permissions Tauri réduites au minimum.
+---
 
-## Installation (utilisateurs)
+ReadMD est un **viewer Markdown** minimaliste construit avec [Tauri v2](https://tauri.app) :
+webview natif, pas de navigateur embarqué → un binaire de **~4 Mo** (là où Electron en ferait ~100).
+Pensé pour que des collaborateurs **non techniques** ouvrent un `.md` d'un simple double-clic.
 
-1. Téléchargez le fichier correspondant à votre système depuis la page
-   [Releases](../../releases) :
-   - **macOS** : `ReadMD_x.y.z_aarch64.dmg` (Apple Silicon).
-   - **Windows** : `ReadMD_x.y.z_x64-setup.exe` (NSIS) ou `ReadMD_x.y.z_x64_en-US.msi`.
-2. Ouvrez le fichier et glissez **ReadMD** dans vos Applications.
-3. Lancez ReadMD, puis ouvrez n'importe quel `.md`.
+<!-- 📸 Capture d'écran : déposez votre image dans docs/screenshot.png puis décommentez ↓
+<div align="center"><img src="docs/screenshot.png" width="760" alt="Aperçu de ReadMD" /></div>
+-->
 
-> **macOS — note Gatekeeper.** Les binaires des Releases ne sont pas signés tant
-> qu'un compte Apple Developer n'est pas configuré (voir CI). Si macOS bloque
-> l'ouverture (« développeur non identifié »), faites un clic droit → *Ouvrir*,
-> ou retirez l'attribut de quarantaine :
-> ```bash
-> xattr -dr com.apple.quarantine /Applications/ReadMD.app
-> ```
+## Sommaire
 
-## Développement
+- [Fonctionnalités](#-fonctionnalités)
+- [Installation](#-installation-utilisateurs)
+- [Développement](#-développement)
+- [Architecture](#-architecture)
+- [Roadmap](#-roadmap)
+- [Contribuer](#-contribuer)
+- [Licence](#-licence)
 
-**Prérequis** : [Node ≥ 18](https://nodejs.org), [pnpm](https://pnpm.io),
-[Rust (stable)](https://www.rust-lang.org/tools/install), et les
-[prérequis Tauri](https://tauri.app/start/prerequisites/) de votre OS
-(sur macOS : Xcode Command Line Tools).
+## ✨ Fonctionnalités
+
+- 📄 **Rendu GFM complet** — titres, listes, **cases à cocher**, citations, **tableaux**, liens, images (locales et distantes), séparateurs.
+- 🎨 **Coloration syntaxique** du code (highlight.js, ~40 langages courants).
+- 📊 **Diagrammes Mermaid** (` ```mermaid `), chargés à la demande ; une erreur de syntaxe affiche un encadré sans casser le document.
+- 🖌️ **Personnalisation** — couleurs (titres, sous-titres, texte, liens), polices, taille, largeur de lecture ; aperçu en direct, **sauvegardé sur disque**.
+- 🌗 **Thème clair / sombre**, suit le système ou forcé manuellement.
+- 📂 **Ouverture multiple** — double-clic (association `.md`/`.markdown`), glisser-déposer, bouton « Ouvrir », ou ligne de commande.
+- ♻️ **Rechargement à chaud** — le rendu se met à jour quand le fichier change sur disque.
+- 🔗 **Liens externes** ouverts dans le navigateur par défaut.
+- 🔒 **Sécurité** — tout le HTML est nettoyé par DOMPurify, CSP stricte, permissions Tauri minimales.
+
+## ⬇️ Installation (utilisateurs)
+
+Téléchargez la dernière version depuis la page **[Releases](https://github.com/Axclgrd/ReadMD/releases)** :
+
+| OS | Fichier |
+| --- | --- |
+| **macOS** (Apple Silicon) | `ReadMD_x.y.z_aarch64.dmg` |
+| **Windows** | `ReadMD_x.y.z_x64-setup.exe` (NSIS) ou `…_x64_en-US.msi` |
+
+Ouvrez le fichier, installez l'app, puis ouvrez n'importe quel `.md`.
+
+> [!NOTE]
+> Les builds ne sont **pas signés** (pas de compte Apple/Windows Developer). L'OS peut afficher un avertissement la première fois :
+> - **macOS** : clic droit sur l'app → *Ouvrir* (ou `xattr -dr com.apple.quarantine /Applications/ReadMD.app`).
+> - **Windows** : *Informations complémentaires* → *Exécuter quand même*.
+
+## 🛠️ Développement
+
+**Prérequis** : [Node ≥ 18](https://nodejs.org), [pnpm](https://pnpm.io), [Rust stable](https://www.rust-lang.org/tools/install) et les [prérequis Tauri](https://tauri.app/start/prerequisites/) de votre OS.
 
 ```bash
-pnpm install          # dépendances JS
-pnpm tauri dev        # lance l'app en mode développement
-pnpm tauri build      # produit les installeurs (.dmg / .msi / .exe)
+git clone https://github.com/Axclgrd/ReadMD.git
+cd ReadMD
+pnpm install
+pnpm tauri dev        # développement (hot reload)
+pnpm tauri build      # installeurs (.dmg / .msi / .exe)
 ```
 
 Gates qualité :
 
 ```bash
-pnpm typecheck        # TypeScript strict
-pnpm lint             # ESLint
-pnpm test             # tests unitaires (vitest)
-# côté Rust (depuis src-tauri/) :
-cargo clippy --all-targets -- -D warnings
-cargo test
+pnpm typecheck && pnpm lint && pnpm test          # frontend
+cargo clippy --all-targets -- -D warnings         # depuis src-tauri/
+cargo test                                        # depuis src-tauri/
 ```
 
-### Architecture
+## 🧱 Architecture
 
-- **Frontend** : React + TypeScript + Vite. Le rendu vit dans
-  `src/lib/markdown.ts` (markdown-it → highlight.js → **DOMPurify**) ; Mermaid
-  est isolé en lazy dans `src/lib/mermaid.ts`. Tout le thème passe par des
-  variables CSS (`src/styles/theme.css`) que le panneau de réglages modifie.
-- **Backend** : Rust (`src-tauri/`). Une seule commande de lecture
-  (`read_markdown`, vérifie l'extension — pas d'accès disque large), un watcher
-  de fichier (`notify`), et la réception du fichier au lancement (arg CLI sous
-  Windows, `RunEvent::Opened` sous macOS).
-- **Persistance** des préférences via `tauri-plugin-store` (JSON dans le dossier
-  de config de l'app).
+| Couche | Tech | Rôle |
+| --- | --- | --- |
+| **Backend** | Rust (`src-tauri/`) | Fenêtre native, lecture fichier (`read_markdown`, extension vérifiée), watcher (`notify`), ouverture au lancement (arg CLI / `RunEvent::Opened`). |
+| **Frontend** | React + TypeScript + Vite (`src/`) | UI, rendu markdown-it → highlight.js → **DOMPurify**, Mermaid (lazy), panneau de réglages. |
+| **Thème** | Variables CSS (`src/styles/theme.css`) | Toute la personnalisation passe par des variables, modifiées en direct par le panneau. |
+| **Prefs** | `tauri-plugin-store` | Réglages persistés en JSON dans le dossier de config de l'app. |
 
-## Roadmap
+## 🗺️ Roadmap
 
-**Livré (V1)** : rendu GFM, Mermaid, personnalisation, thème clair/sombre,
-ouverture (double-clic / drag&drop / dialog / CLI), reload à chaud, liens externes.
+- **V1 (livré)** : rendu GFM, Mermaid, personnalisation, thème clair/sombre, ouverture multi-source, reload à chaud, liens externes.
+- **Hors V1** (structure prévue) : édition, multi-onglets, export PDF.
+- **Idée future** : extension **Quick Look / Spotlight** native macOS (`.appex` Swift) pour un aperçu dans le Finder — hors périmètre Tauri, nécessite une signature Apple. Réf : [QLMarkdown](https://github.com/sbarex/QLMarkdown).
 
-**Hors périmètre V1** (structure prévue pour les ajouter sans refonte) :
-édition, sauvegarde, multi-onglets, export PDF.
+## 🤝 Contribuer
 
-**Phase 2 (idée future)** : extension **Quick Look / Spotlight** native macOS
-(`.appex` en Swift via Xcode) pour un aperçu du rendu directement dans le
-Finder/Spotlight. Hors périmètre actuel car non géré par Tauri, spécifique
-macOS, et nécessite signature Apple. Référence open source :
-[QLMarkdown](https://github.com/sbarex/QLMarkdown).
+Les contributions sont bienvenues !
 
-## Licence
+1. *Forkez* le dépôt et créez une branche (`git checkout -b feat/ma-fonctionnalite`).
+2. Vérifiez que les gates passent (`pnpm typecheck && pnpm lint && pnpm test`).
+3. Ouvrez une *Pull Request* décrivant le changement.
 
-[MIT](LICENSE) — usage, modification et redistribution libres (y compris
-commercial), à condition de conserver la notice de copyright.
-© 2026 ReadMD contributors.
+Pour un bug ou une idée, ouvrez une [issue](https://github.com/Axclgrd/ReadMD/issues).
+
+## 📄 Licence
+
+[MIT](LICENSE) — usage, modification et redistribution libres (y compris commercial), à condition de conserver la notice de copyright. © 2026 ReadMD contributors.
+
+<div align="center"><sub>Construit avec ❤️ et <a href="https://tauri.app">Tauri</a>.</sub></div>
