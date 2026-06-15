@@ -29,23 +29,35 @@ export default function Viewer({ source }: ViewerProps) {
   const ref = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    // Capture ref.current once — narrows HTMLElement | null → HTMLElement and
-    // avoids reading a ref that could change during the async render.
     const container = ref.current;
     if (container === null) return;
 
     let cancelled = false;
 
-    // Fire-and-forget: individual diagram errors are handled inside
-    // renderMermaidIn, so an unhandled rejection here means an unexpected
-    // infrastructure failure — surface it to the console, not the UI.
-    renderMermaidIn(container, () => cancelled).catch((err: unknown) => {
-      console.error("[ReadMD] Mermaid render pass failed:", err);
-    });
+    // A render pass: disconnect the observer first so our own DOM mutations
+    // (replacing <pre class="mermaid"> with the SVG) don't re-trigger it; then
+    // re-observe so we catch any later reset of the article's children.
+    const observer = new MutationObserver(() => void run());
+
+    async function run() {
+      if (cancelled || container === null) return;
+      observer.disconnect();
+      try {
+        await renderMermaidIn(container, () => cancelled);
+      } catch (err: unknown) {
+        console.error("[ReadMD] Mermaid render pass failed:", err);
+      }
+      if (!cancelled) observer.observe(container, { childList: true });
+    }
+
+    // Initial pass + watch for React re-applying innerHTML on a later re-render
+    // (e.g. when the settings panel opens), which would otherwise leave the
+    // Mermaid placeholders showing as raw text without ever re-rendering.
+    void run();
 
     return () => {
-      // Signal any in-flight render to abandon its remaining blocks.
       cancelled = true;
+      observer.disconnect();
     };
   }, [html]); // Re-run whenever the document changes (new source → new html).
 
