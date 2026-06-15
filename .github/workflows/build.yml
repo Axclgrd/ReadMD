@@ -32,6 +32,9 @@ jobs:
     name: Build (${{ matrix.platform }})
     needs: check
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    # The GITHUB_TOKEN needs write access to create the GitHub Release.
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
