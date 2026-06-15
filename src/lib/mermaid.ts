@@ -71,6 +71,11 @@ export async function renderMermaidIn(
       startOnLoad: false,
       securityLevel: "strict",
       theme: "default",
+      // Use SVG <text> labels, not HTML <foreignObject> labels. Our SVG-profile
+      // DOMPurify pass strips foreignObject, which would leave node shapes empty.
+      // SVG text labels render correctly and stay safe to sanitize.
+      htmlLabels: false,
+      flowchart: { htmlLabels: false },
     });
     mermaidInitialized = true;
   }
